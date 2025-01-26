@@ -1,7 +1,8 @@
+from django.utils.encoding import escape_uri_path
 from rest_framework.response import Response
 
 
-class XLSXFileMixin(object):
+class XLSXFileMixin:
     """
     Mixin which allows the override of the filename being
     passed back to the user when the spreadsheet is downloaded.
@@ -20,14 +21,13 @@ class XLSXFileMixin(object):
         Return the response with the proper content disposition and the customized
         filename instead of the browser default (or lack thereof).
         """
-        response = super(XLSXFileMixin, self).finalize_response(
-            request, response, *args, **kwargs
-        )
+        response = super().finalize_response(request, response, *args, **kwargs)
         if (
             isinstance(response, Response)
             and response.accepted_renderer.format == "xlsx"
         ):
-            response["content-disposition"] = "attachment; filename={}".format(
-                self.get_filename(request=request, *args, **kwargs),
+            filename = self.get_filename(request, *args, **kwargs)
+            response["content-disposition"] = (
+                f"attachment; filename={escape_uri_path(filename)}"
             )
         return response
